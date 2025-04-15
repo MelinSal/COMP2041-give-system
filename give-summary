@@ -1,0 +1,49 @@
+#!/bin/dash
+
+# COMP2041/9044 Assignment1
+# give-summary
+#
+# This program was written by Melina Salardini (z5393518)
+# on july 7, 2024
+#
+# Lists all assignments
+# With a count of how many students have made submissions
+
+
+# check if .give dir exists
+if [ ! -d ".give" ]; then
+    echo "no assignments"
+    exit 1
+fi
+
+# check if there is any assignments dir
+flag=0
+for assignment in .give/*; do
+    if [ -d "$assignment" ];then
+        flag=1
+    fi
+done
+
+if [ "$flag" -ne 1 ]; then
+    echo "no assignments"
+    exit 1
+fi
+
+
+# iterate through each assignment in the .give dir
+for assignment in .give/*; do
+    if [ -d "$assignment" ]; then
+        # extract assignment name from the path
+        assignment_name=$(basename "$assignment")
+
+        count=0
+
+        # iterate through the student_dir in the assignment dir
+        for student_dir in "$assignment/submissions"/*; do
+            if [ -d "$student_dir" ]; then
+                count=$((count + 1))
+            fi
+        done
+        echo "assignment $assignment_name: submissions from $count students"
+    fi
+done

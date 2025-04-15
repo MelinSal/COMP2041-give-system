@@ -1,0 +1,61 @@
+#!/bin/dash
+
+# COMP2041/9044 Assignment1
+# give-status
+#
+# This program was written by Melina Salardini (z5393518)
+# on july 7, 2024
+#
+# Lists all submissions a student has made
+
+
+# check for the correct number of arguments
+if [ "$#" -ne 1 ]; then
+    echo "usage: give-status <zid>" >&2
+    exit 1
+fi
+
+zid="$1"
+
+# check for the zid format
+if ! echo "$zid" | grep -E '^z[0-9]{7}$' >/dev/null; then
+    echo "give-status: invalid zid: $zid" >&2
+    exit 1
+fi
+
+
+submission_flag=0
+
+# iterate through each assignment in the .give dir
+for assignment in .give/*; do
+    if [ -d "$assignment" ]; then
+        # extract assignment name from the path
+        assignment_name=$(basename "$assignment")
+
+        student_dir="$assignment/submissions/$zid"
+        if [ -d "$student_dir" ]; then
+            submission_flag=1
+            submission_count=$(ls -1 "$student_dir" | wc -l)
+            echo "* $submission_count submissions for $assignment_name"
+
+            # Iterate through each submission file in the specific student dir
+            submission_number=1
+            # sorting the student_dir to ensure the submission are printed in order
+            for submission in $(ls "$student_dir"/* | rev | sort -t '_' -nk1 | rev); do
+                if [ -f "$submission" ]; then
+                    submission_full_name=$(basename "$submission")
+                    submission_file=$(echo "$submission_full_name" | rev | cut -d'_' -f2- | rev)
+                    file_size=$(stat -c %s "$submission")
+                    file_date=$(date -r "$submission" "+%a %b %e %T %Y")
+                    echo "submission $submission_number: $submission_file $file_size bytes @ $file_date"
+                    submission_number=$((submission_number + 1))
+                fi
+            done
+        fi
+    fi
+done
+
+if [ "$submission_flag" -ne 1 ]; then
+    echo "no submissions for $zid"
+    exit 1
+fi

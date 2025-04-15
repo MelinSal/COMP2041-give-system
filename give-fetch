@@ -1,0 +1,67 @@
+#!/bin/dash
+
+# COMP2041/9044 Assignment1
+# give-fetch
+#
+# This program was written by Melina Salardini (z5393518)
+# on july 7, 2024
+#
+# outputs the contents of a submission the student has made
+
+
+# check for the correct number of arguments
+if [ "$#" -ne 2 ] && [ "$#" -ne 3 ]; then
+    echo "usage: give-fetch <assignment> <zid> [n]" >&2
+    exit 1
+fi
+
+assignment="$1"
+zid="$2"
+# check if the third argument was passed
+if [ "$#" -eq 3 ]; then
+    n="$3"
+else
+    n=0
+fi
+
+# Check the zid format
+if ! echo "$zid" | grep -E '^z[0-9]{7}$' >/dev/null; then
+    echo "give-fetch: invalid zid: $zid" >&2
+    exit 1
+fi
+
+
+# check if the assignment exists
+if [ ! -d ".give/$assignment" ]; then
+    echo "give-fetch: assignment $assignment not found" >&2
+    exit 1
+fi
+
+# check if the zid exists
+if [ ! -d ".give/$assignment/submissions/$zid" ]; then
+    echo "No submission for $zid is found in assignment $assignment" >&2
+    exit 1
+fi
+
+
+# List all submission files for the student
+submission_files=$(ls ".give/$assignment/submissions/$zid" 2>/dev/null)
+
+submission_count=$(echo "$submission_files" | wc -l)
+
+# Handle negative and zero values for n
+if [ "$n" -eq 0 ]; then
+    n=$submission_count
+elif [ "$n" -lt 0 ]; then
+    n=$((submission_count + n))
+fi
+
+# If n is greater than the number of submissions, print an error message
+if [ "$n" -gt "$submission_count" ] || [ "$n" -lt 1 ]; then
+    echo "give-fetch: submission $n not found for $assignment" >&2
+    exit 1
+fi
+
+# Fetch the nth submission
+nth_submission=$(echo "$submission_files" | grep -E ".*_$n$")
+cat ".give/$assignment/submissions/$zid/$nth_submission"

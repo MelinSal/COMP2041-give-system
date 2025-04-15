@@ -1,0 +1,70 @@
+#!/bin/dash
+
+# COMP2041/9044 Assignment1
+# give-submit
+#
+# This program was written by Melina Salardini (z5393518)
+# on july 7, 2024
+#
+# Makes a submission for the assignment by a student
+
+
+# Ensure the number of arguments
+if [ "$#" -ne 3 ]; then
+    echo "usage: give-submit <assignment> <zid> <filename>" >&2
+    exit 1
+fi
+
+assignment="$1"
+zid="$2"
+submission_file="$3"
+
+# Check the assignment name format
+if ! echo "$assignment" | grep -E '^[a-z][a-zA-Z0-9_]*$' >/dev/null; then
+    echo "give-submit: invalid assignment: $assignment" >&2
+    exit 1
+fi
+
+# Check if the assignment exists
+if [ ! -d ".give/$assignment" ]; then
+    echo "give-submit: assignment $assignment not found" >&2
+    exit 1
+fi
+
+# Check the zid format
+if ! echo "$zid" | grep -E '^z[0-9]{7}$' >/dev/null; then
+    echo "give-submit: invalid zid: $zid" >&2
+    exit 1
+fi
+
+# Check the submission file format
+if ! echo "$submission_file" | grep -E '^[a-zA-Z0-9_.-\/]+$' >/dev/null; then
+    echo "give-submit: invalid filename: $submission_file" >&2
+    exit 1
+fi
+
+# check if the submission file exists
+if [ ! -f "$submission_file" ]; then
+    echo "give-submit: $submission_file: No such file or directory" >&2
+    exit 1
+fi
+
+# Create a submissions directory if it doesn't exist
+submissions_dir=".give/$assignment/submissions/$zid"
+mkdir -p "$submissions_dir"
+
+# Count existing submissions
+submission_count=$(find "$submissions_dir" -maxdepth 1 -type f | wc -l)
+submission_id=$((submission_count + 1))
+
+# Copy submission file to submissions directory
+cp "$submission_file" "$submissions_dir/""$submission_file"_"$submission_id"
+
+# Get submission file size
+file_size=$(stat -c %s "$submissions_dir/""$submission_file"_"$submission_id")
+
+# Get submission file modification date
+file_date=$(date -r "$submissions_dir/""$submission_file"_"$submission_id" "+%a %b %e %T %Y")
+
+# Output submission information
+echo "Submission accepted - submission $submission_id: $submission_file $file_size bytes @ $file_date"

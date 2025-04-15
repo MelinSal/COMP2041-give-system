@@ -1,0 +1,35 @@
+#!/bin/dash
+
+# COMP2041/9044 Assignment1
+# give-rm
+#
+# This program was written by Melina Salardini (z5393518)
+# on july 7, 2024
+#
+# A Shell Script that remove an assignment
+
+
+# ensure the correct number of arguments
+if [ "$#" -ne 1 ]; then
+    echo "usage: give-rm <assignment>" >&2
+    exit 1
+fi
+
+assignment="$1"
+
+# check if the assignment's name valid
+if ! echo "$assignment" | grep -E '^[a-z][a-zA-Z0-9_]*$' >/dev/null; then
+    echo "give-rm: invalid assignment: $assignment" >&2
+    exit 1
+fi
+
+# check if the assignment exists
+if [ ! -d ".give/$assignment" ]; then
+    echo "give-rm: assignment $assignment not found" >&2
+    exit 1
+fi
+
+# remove the assignment
+assignemt_dir=".give/$assignment"
+rm -rf "$assignemt_dir"
+echo "assignment $assignment removed"

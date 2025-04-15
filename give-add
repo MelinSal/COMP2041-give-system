@@ -1,0 +1,67 @@
+#!/bin/dash
+
+# COMP2041/9044 Assignment1
+# give-add
+#
+# This program was written by Melina Salardini (z5393518)
+# on july 7, 2024
+#
+# Creates a new Give assignment
+
+
+# check for the correct number of arguments
+if [ "$#" -ne 4 ]; then
+    echo "usage: give-add <assignment> <solution> <autotests> <automarking>" >&2
+    exit 1
+fi
+
+assignment="$1"
+solution="$2"
+autotests="$3"
+automarking="$4"
+
+
+# check the assignment name format
+if ! echo "$assignment" | grep -E '^[a-z][a-zA-Z0-9_]*$' >/dev/null ; then
+    echo "give-add: invalid assignment: $assignment" >&2
+    exit 1
+fi
+
+# create a .give dir if it doesnt exists
+if [ ! -d ".give" ]; then
+    mkdir .give
+    echo "directory .give created"
+fi
+
+
+# check if the solution is valid
+if ! echo "$solution" | grep -E '^[a-zA-Z0-9_.-\/]+$' >/dev/null; then
+    echo "give-add: invalid solution: $solution" >&2
+    exit 1
+fi
+
+
+# check if the solution, autotests and automarking exists
+for file in "$solution" "$autotests" "$automarking" ; do
+    if [ ! -f "$file" ] && [ ! -d "$file" ]; then
+        echo "give-add: $file: No such file or directory" >&2
+        exit 1
+    fi     
+done
+
+
+# create a assignment dir
+assignment_dir=".give/$assignment"
+if [ ! -d "$assignment_dir" ]; then
+    mkdir "$assignment_dir"
+else
+    echo "give-add: assignment $assignment already exists" >&2
+    exit 1
+fi
+
+
+# copy the files in the assignment_dir
+cp "$solution" "$assignment_dir/solution" 
+cp "$autotests" "$assignment_dir/autotests"
+cp "$automarking" "$assignment_dir/automarking"
+echo "assignment $assignment created"
